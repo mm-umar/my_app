@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Converts a string to a slug format (lowercase, words separated by hyphens).
@@ -25,7 +25,7 @@ export const convertToSlug = (input: string): string => {
  * @param {string} slug - The slug string to be converted.
  * @returns {string} - The human-readable, capitalized title.
  */
-export const convertSlugToTitle = (slug: string): string => {
+export const convertSlugToTitle = (slug: string | undefined): string => {
   if (!slug || typeof slug !== "string") {
     throw new Error("Slug must be a non-empty string");
   }
@@ -33,23 +33,26 @@ export const convertSlugToTitle = (slug: string): string => {
   return slug
     .trim() // Remove leading/trailing whitespace
     .replace(/-/g, " ") // Replace hyphens with spaces
+    .replace(/_/g, " ") // Replace hyphens with spaces
     .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize the first letter of each word
 };
 
 /**
  * Generates breadcrumb items dynamically based on the current path.
  *
+ * @param {string} pathname - The current path.
  * @returns {Array<{ title: string; href?: string }>} - Breadcrumb items with titles and URLs.
  */
-export const generateBreadcrumbItems = () => {
-  const location = useLocation();
-  const pathSegments = location.pathname.split("/").filter(Boolean); // Split and filter empty segments
+export const generateBreadcrumbItems = (
+  pathname: string
+): Array<{ title: string; href?: string }> => {
+  const pathSegments = pathname.split("/").filter(Boolean); // Split and filter empty segments
 
   return pathSegments.map((segment, index) => {
     const url = `/${pathSegments.slice(0, index + 1).join("/")}`;
     return {
       title: convertSlugToTitle(segment),
-      href: url !== location.pathname ? url : undefined, // Add `href` only for non-active items
+      href: url !== pathname ? url : undefined, // Add `href` only for non-active items
     };
   });
 };
@@ -77,7 +80,8 @@ export const groupSidebarItems = (
       .map((child) => ({
         key: child.name,
         label: child.label,
-        onClick: () => navigate(convertToSlug(child.label)),
+        onClick: () =>
+          navigate(convertToSlug(parent.label + "/" + child.label)),
       }));
 
     groupedItems.push({
@@ -94,13 +98,13 @@ export const groupSidebarItems = (
 /**
  * Returns an array of path segments derived from the current pathname.
  *
+ * @param {string} pathname - The current path.
  * @returns {string[]} - Array of path segments converted into human-readable titles.
  */
-export const getPathSegments = (): string[] => {
-  const location = useLocation();
+export const getPathSegments = (pathname: string): string[] => {
   // Get path segments from the current pathname
 
-  return location.pathname
+  return pathname
     .replace(/\/$/, "") // Remove trailing slash if present
     .split("/") // Split the path into segments
     .filter(Boolean) // Remove any empty segments

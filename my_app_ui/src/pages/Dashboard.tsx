@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 
 const { Title } = Typography;
 
-const Home = () => {
+const Dashboard = () => {
   const { currentUser, logout, isLoading } = useFrappeAuth();
 
   return (
@@ -48,4 +48,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Dashboard;
