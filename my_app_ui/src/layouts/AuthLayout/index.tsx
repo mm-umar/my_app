@@ -1,16 +1,21 @@
-import { Layout } from "antd";
+import { Layout, theme } from "antd";
 import { Outlet } from "react-router-dom";
 
 const { Content } = Layout;
 
 const AuthLayout = () => {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
   return (
-    <Layout style={{ minHeight: "100vh", backgroundColor: "#f0f2f5" }}>
+    <Layout>
       <Content
         style={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          background: colorBgContainer,
         }}
       >
         <Outlet />

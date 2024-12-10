@@ -46,7 +46,13 @@ const Login = () => {
             Login
           </Title>
         }
-        style={{ width: 400, maxWidth: "100%" }}
+        style={{
+          width: 400,
+          maxWidth: "100%",
+          borderRadius: 8, // Add border radius for rounded corners
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // Optional: Add subtle shadow for depth
+          border: "solid 2px #1890ff", // Adjust border color to match Ant Design's blue
+        }}
       >
         <Form
           layout="vertical"

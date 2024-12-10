@@ -1,122 +1,89 @@
-import { Layout, Menu } from "antd";
-import { useFrappePostCall } from "frappe-react-sdk";
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useMemo } from "react";
+import { Breadcrumb, Layout, Menu, theme } from "antd";
 import { Outlet, useNavigate } from "react-router-dom";
-import toSlug from "../../utils/helper";
+import { useFrappePostCall } from "frappe-react-sdk";
+import {
+  generateBreadcrumbItems,
+  getPathSegments,
+  groupSidebarItems,
+} from "../../lib/helper";
 
-const { Header, Content, Sider, Footer } = Layout;
+const { Header, Content, Sider } = Layout;
 
-const MainLayout = () => {
+const MainLayout: React.FC = () => {
   const navigate = useNavigate();
-  const { call, result, error } = useFrappePostCall(
+
+  // Extract Ant Design theme token for dynamic styles
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
+
+  // Fetch sidebar items once when the component mounts
+  const { call, result } = useFrappePostCall(
     "frappe.desk.desktop.get_workspace_sidebar_items"
   );
-  const [selectedKey, setSelectedKey] = useState<string>("");
 
   useEffect(() => {
     call({});
   }, [call]);
 
-  const handleNavigation = useCallback(
-    (label: string) => {
-      const slug = toSlug(label);
-      setSelectedKey(slug); // Update selected key on navigation
-      navigate(slug);
-    },
-    [navigate]
-  );
+  // Memoize the menu items to avoid unnecessary recalculations
+  const menuItems = useMemo(() => {
+    if (result?.message?.pages) {
+      return groupSidebarItems(result.message.pages, navigate);
+    }
+    return [];
+  }, [result, navigate]);
 
-  // Function to group sidebar items and subitems
-  const groupSidebarItems = (pages: any[]) => {
-    const groupedItems: any[] = [];
-    const parentItems = pages.filter((item) => !item.parent_page);
-    const childItems = pages.filter((item) => item.parent_page);
+  // Memoize breadcrumb items to avoid unnecessary recalculations
+  const breadcrumbItems = useMemo(() => generateBreadcrumbItems(), []);
 
-    parentItems.forEach((parent) => {
-      const children = childItems
-        .filter((child) => child.parent_page === parent.name)
-        .map((child) => ({
-          key: child.name,
-          label: child.label,
-          onClick: () => handleNavigation(child.label),
-        }));
-
-      groupedItems.push({
-        key: parent.name,
-        label: parent.label,
-        onClick: () => handleNavigation(parent.label),
-        children: children.length > 0 ? children : undefined,
-      });
-    });
-
-    return groupedItems;
+  // Styles
+  const headerStyle = {
+    display: "flex",
+    alignItems: "center",
+    background: colorBgContainer,
+    padding: "0 24px",
+    fontSize: "20px", // Adjust the font size as needed
   };
 
-  // Safely handle result when it's available
-  const menuItems = result?.message?.pages
-    ? groupSidebarItems(result.message.pages)
-    : [];
+  const siderStyle = {
+    background: colorBgContainer,
+  };
 
-  if (error) {
-    return <div>Error loading sidebar items</div>;
-  }
-
-  if (!result) {
-    return <div>Loading...</div>; // Show loading while fetching data
-  }
+  const contentStyle = {
+    padding: 24,
+    margin: 0,
+    minHeight: 280,
+    background: colorBgContainer,
+    borderRadius: borderRadiusLG,
+  };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      {/* Sidebar */}
-      <Sider collapsible breakpoint="lg" style={{ background: "#001529" }}>
-        <div
-          style={{
-            height: "64px",
-            margin: "16px",
-            background: "rgba(255, 255, 255, 0.2)",
-            borderRadius: "8px",
-          }}
-        />
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[selectedKey]} // Dynamic selected key based on navigation
-          items={menuItems}
-        />
-      </Sider>
+    <Layout>
+      {/* Header */}
+      <Header style={headerStyle}>Education Management System</Header>
 
-      {/* Main Layout */}
       <Layout>
-        {/* Header */}
-        <Header
-          style={{
-            background: "#fff",
-            padding: 0,
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <div
-            style={{
-              padding: "0 16px",
-              fontSize: "1.2rem",
-              fontWeight: "bold",
-            }}
-          >
-            App Header
-          </div>
-        </Header>
+        {/* Sider (Sidebar) */}
+        <Sider width={200} style={siderStyle}>
+          <Menu
+            mode="inline"
+            selectedKeys={getPathSegments()} // Dynamically set selected keys based on path segments
+            style={{ height: "100%", borderRight: 0 }}
+            items={menuItems} // Sidebar menu items
+          />
+        </Sider>
 
-        {/* Content Area */}
-        <Content
-          style={{ margin: "16px", padding: "16px", background: "#fff" }}
-        >
-          <Outlet />
-        </Content>
+        <Layout style={{ padding: "0 24px 24px" }}>
+          {/* Breadcrumb */}
+          <Breadcrumb items={breadcrumbItems} style={{ margin: "16px 0" }} />
 
-        {/* Footer */}
-        <Footer style={{ textAlign: "center" }}>
-          My Application ©2024 Created with Ant Design
-        </Footer>
+          {/* Content */}
+          <Content style={contentStyle}>
+            <Outlet />
+          </Content>
+        </Layout>
       </Layout>
     </Layout>
   );

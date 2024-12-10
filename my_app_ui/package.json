@@ -11,7 +11,8 @@
     "copy-html-entry": "cp ../my_app/public/my_app_ui/index.html ../my_app/www/my_app_ui.html"
   },
   "dependencies": {
-    "antd": "^5.22.3",
+    "@ant-design/icons": "^5.5.2",
+    "antd": "^5.22.4",
     "frappe-react-sdk": "^1.9.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
