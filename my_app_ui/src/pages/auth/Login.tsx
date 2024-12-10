@@ -1,135 +1,85 @@
-import { SetStateAction, useState } from "react";
-import {
-  Flex,
-  Card,
-  Heading,
-  Box,
-  Text,
-  TextField,
-  Button,
-  Callout,
-} from "@radix-ui/themes";
+import { useState } from "react";
+import { Form, Input, Button, Card, Typography, message, Space } from "antd";
 import { useFrappeAuth } from "frappe-react-sdk";
+import { useNavigate } from "react-router-dom";
+
+const { Title } = Typography;
 
 const Login = () => {
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useFrappeAuth();
+  const navigate = useNavigate();
 
-  const { currentUser, login, logout, isLoading } = useFrappeAuth();
+  const handleLogin = async (values: {
+    username: string;
+    password: string;
+  }) => {
+    setIsLoading(true);
+    const { username, password } = values;
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username || !password) {
-      setLoginError("Please enter both username and password.");
-      return;
+    try {
+      const res = await login({ username, password });
+      if (res.message === "Logged In") {
+        navigate("/");
+      } else {
+        message.error("Unexpected response during login.");
+      }
+    } catch (err: any) {
+      message.error(err.message || "An unknown error occurred.");
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log("Logging in with:", { username, password });
-    login({ username, password })
-      .then((res) => {
-        if (res.message === "Logged In") {
-          setLoginError(null); // Clear error on success
-        } else {
-          setLoginError("Unexpected response during login.");
-        }
-      })
-      .catch((err) => {
-        setLoginError(err.message || "An unknown error occurred.");
-      });
   };
 
   return (
-    <Flex align="center" justify="center" style={{ height: "100vh" }}>
+    <Space
+      style={{
+        height: "100vh",
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <Card
-        size="3"
-        style={{ padding: "2rem", maxWidth: "400px", width: "100%" }}
+        title={
+          <Title level={3} style={{ textAlign: "center", marginBottom: 0 }}>
+            Login
+          </Title>
+        }
+        style={{ width: 400, maxWidth: "100%" }}
       >
-        <Heading align="center" size="3" style={{ marginBottom: "1rem" }}>
-          Login
-        </Heading>
-        {loginError ? (
-          <Callout.Root color="red">
-            <Callout.Icon />
-            <Callout.Text>Error: {loginError}</Callout.Text>
-          </Callout.Root>
-        ) : currentUser ? (
-          <Callout.Root color="green">
-            <Callout.Icon />
-            <Callout.Text>
-              Current User: {JSON.stringify(currentUser)}
-            </Callout.Text>
-          </Callout.Root>
-        ) : null}
-        {!currentUser && (
-          <>
-            <Box style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-              <Text
-                as="label"
-                size="3"
-                htmlFor="username"
-                style={{ marginBottom: "0.5rem", display: "block" }}
-              >
-                Username/Email
-              </Text>
-              <TextField.Root
-                id="username"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e: { target: { value: SetStateAction<string> } }) =>
-                  setUsername(e.target.value)
-                }
-                size="3"
-                required
-              />
-            </Box>
-            <Box style={{ marginBottom: "1.5rem" }}>
-              <Text
-                as="label"
-                size="3"
-                htmlFor="password"
-                style={{ marginBottom: "0.5rem", display: "block" }}
-              >
-                Password
-              </Text>
-              <TextField.Root
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e: { target: { value: SetStateAction<string> } }) =>
-                  setPassword(e.target.value)
-                }
-                size="3"
-                required
-              />
-            </Box>
-            <Button
-              type="submit"
-              style={{ width: "100%", marginTop: "1rem" }}
-              onClick={handleLogin}
-              disabled={isLoading}
-              loading={isLoading}
-              size="3"
-            >
-              Login
-            </Button>
-          </>
-        )}
-        {currentUser && !loginError && (
-          <Button
-            type="submit"
-            style={{ width: "100%", marginTop: "1rem" }}
-            onClick={logout}
-            disabled={isLoading}
-            loading={isLoading}
-            size="3"
+        <Form
+          layout="vertical"
+          onFinish={handleLogin}
+          requiredMark={false}
+          style={{ width: "100%" }}
+        >
+          <Form.Item
+            label="Username/Email"
+            name="username"
+            rules={[{ required: true, message: "Please enter your username." }]}
           >
-            Logout
+            <Input placeholder="Enter your username" />
+          </Form.Item>
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Please enter your password." }]}
+          >
+            <Input.Password placeholder="Enter your password" />
+          </Form.Item>
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={isLoading}
+            size="large"
+          >
+            Login
           </Button>
-        )}
+        </Form>
       </Card>
-    </Flex>
+    </Space>
   );
 };
 
