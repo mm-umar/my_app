@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
  * @param {string} input - The input string to be converted.
  * @returns {string} - The slugified version of the input string.
  */
-export const convertToSlug = (input: string): string => {
+export const toSlug = (input: string): string => {
   if (!input || typeof input !== "string") {
     throw new Error("Input must be a non-empty string");
   }
@@ -25,7 +25,7 @@ export const convertToSlug = (input: string): string => {
  * @param {string} slug - The slug string to be converted.
  * @returns {string} - The human-readable, capitalized title.
  */
-export const convertSlugToTitle = (slug: string | undefined): string => {
+export const toTitle = (slug: string | undefined): string => {
   if (!slug || typeof slug !== "string") {
     throw new Error("Slug must be a non-empty string");
   }
@@ -51,7 +51,7 @@ export const generateBreadcrumbItems = (
   return pathSegments.map((segment, index) => {
     const url = `/${pathSegments.slice(0, index + 1).join("/")}`;
     return {
-      title: convertSlugToTitle(segment),
+      title: toTitle(segment),
       href: url !== pathname ? url : undefined, // Add `href` only for non-active items
     };
   });
@@ -80,14 +80,13 @@ export const groupSidebarItems = (
       .map((child) => ({
         key: child.name,
         label: child.label,
-        onClick: () =>
-          navigate(convertToSlug(parent.label + "/" + child.label)),
+        onClick: () => navigate(toSlug(parent.label + "/" + child.label)),
       }));
 
     groupedItems.push({
       key: parent.name,
       label: parent.label,
-      onClick: () => navigate(convertToSlug(parent.label)),
+      onClick: () => navigate(toSlug(parent.label)),
       children: children.length > 0 ? children : undefined,
     });
   });
@@ -108,6 +107,6 @@ export const getPathSegments = (pathname: string): string[] => {
     .replace(/\/$/, "") // Remove trailing slash if present
     .split("/") // Split the path into segments
     .filter(Boolean) // Remove any empty segments
-    .map((item) => convertSlugToTitle(item)) // Convert slugs to titles
+    .map((item) => toTitle(item)) // Convert slugs to titles
     .filter((item): item is string => item !== null); // Ensure all items are non-null strings
 };
