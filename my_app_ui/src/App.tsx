@@ -1,19 +1,9 @@
 import { useState } from "react";
-import { FrappeProvider } from "frappe-react-sdk";
 import { ConfigProvider, Switch } from "antd";
-import AppRoutes from "./AppRoutes";
+import { Outlet } from "react-router-dom";
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const getSiteName = () => {
-    const { boot } = (window as any).frappe || {};
-    const { versions, sitename } = boot || {};
-    return versions?.frappe?.startsWith("15") ||
-      versions?.frappe?.startsWith("16")
-      ? sitename ?? import.meta.env.VITE_SITE_NAME
-      : import.meta.env.VITE_SITE_NAME;
-  };
 
   const themeTokens = {
     light: {
@@ -48,43 +38,38 @@ function App() {
       }}
     >
       <ConfigProvider theme={isDarkMode ? themeTokens.dark : themeTokens.light}>
-        <FrappeProvider
-          socketPort={import.meta.env.VITE_SOCKET_PORT}
-          siteName={getSiteName()}
+        <div
+          style={{
+            position: "fixed",
+            top: 20,
+            right: 10,
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: isDarkMode
+              ? "rgba(31, 41, 55, 0.8)"
+              : "rgba(255, 255, 255, 0.8)",
+            borderRadius: "20px",
+            boxShadow: isDarkMode
+              ? themeTokens.dark.token.boxShadow
+              : themeTokens.light.token.boxShadow,
+            backdropFilter: "blur(10px)",
+            transition: "all 0.3s ease-in-out",
+          }}
         >
-          <div
+          <Switch
+            checked={isDarkMode}
+            onChange={() => setIsDarkMode((prev) => !prev)}
+            checkedChildren="🌙"
+            unCheckedChildren="☀️"
             style={{
-              position: "fixed",
-              top: 20,
-              right: 10,
-              zIndex: 1000,
-              display: "flex",
-              alignItems: "center",
               backgroundColor: isDarkMode
-                ? "rgba(31, 41, 55, 0.8)"
-                : "rgba(255, 255, 255, 0.8)",
-              borderRadius: "20px",
-              boxShadow: isDarkMode
-                ? themeTokens.dark.token.boxShadow
-                : themeTokens.light.token.boxShadow,
-              backdropFilter: "blur(10px)",
-              transition: "all 0.3s ease-in-out",
+                ? themeTokens.dark.token.colorPrimary
+                : themeTokens.light.token.colorPrimary,
             }}
-          >
-            <Switch
-              checked={isDarkMode}
-              onChange={() => setIsDarkMode((prev) => !prev)}
-              checkedChildren="🌙"
-              unCheckedChildren="☀️"
-              style={{
-                backgroundColor: isDarkMode
-                  ? themeTokens.dark.token.colorPrimary
-                  : themeTokens.light.token.colorPrimary,
-              }}
-            />
-          </div>
-          <AppRoutes />
-        </FrappeProvider>
+          />
+        </div>
+        <Outlet />
       </ConfigProvider>
     </div>
   );

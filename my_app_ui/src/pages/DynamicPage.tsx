@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { convertSlugToTitle } from "../lib/helper";
-import { Button, Card, Col, Row, Space } from "antd";
+import { NavLink, useLocation } from "react-router-dom";
+import { toTitle, toSlug } from "../lib/helper";
+import { Button, Card, Col, Row, Space, Spin } from "antd";
 
 const DynamicPage = () => {
   const location = useLocation();
   const lastSegment = location.pathname.split("/").pop();
   const [data, setData] = useState<any>();
+  const [loading, setLoading] = useState<boolean>(true);
   const sections = data ? Object.keys(data).map((key) => key) : [];
 
-  // Fetch data using useEffect
   useEffect(() => {
     const fetchData = async () => {
-      const page = { name: convertSlugToTitle(lastSegment) };
+      setLoading(true);
+      const page = { name: toTitle(lastSegment) };
       const formData = new FormData();
       formData.append("page", JSON.stringify(page));
       try {
@@ -29,48 +30,66 @@ const DynamicPage = () => {
         );
         const result = await response.json();
 
-        // Ensure data is an array
         if (result?.message) {
-          setData(result?.message); // Store fetched data in state
+          setData(result?.message);
         } else {
-          setData([]); // Fallback to empty array if the data is not an array
+          setData([]);
         }
       } catch (error) {
-        console.error("Error fetching data:", error); // Handle errors
-        setData([]); // Ensure empty array if there's an error
+        console.error("Error fetching data:", error);
+        setData([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     if (lastSegment) {
-      fetchData(); // Call the async function
+      fetchData();
     }
-  }, [lastSegment]); // Effect now runs whenever `lastSegment` changes
+  }, [lastSegment]);
 
   return (
-    <Space direction="vertical" style={{ width: "100%" }}>
-      {sections?.map(
-        (section) =>
-          data[section]?.items?.length > 0 && (
-            <Card
-              key={section}
-              title={convertSlugToTitle(section)}
-              style={{
-                border: "solid 2px #1890ff", // Adjust border color to match Ant Design's blue
-              }}
-            >
-              <Row gutter={[10, 10]}>
-                {data[section]?.items?.map((item: any, index: number) => (
-                  <Col key={index} span={6}>
-                    <Button key={index} className="w-full">
-                      {item.label}
-                    </Button>
-                  </Col>
-                ))}
-              </Row>
-            </Card>
-          )
+    <div style={{ position: "relative", minHeight: "100vh" }}>
+      {loading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <Spin tip="Loading..." size="large" style={{ marginTop: "20px" }} />
+        </div>
+      ) : (
+        <Space direction="vertical" style={{ width: "100%" }}>
+          {sections?.map(
+            (section) =>
+              data[section]?.items?.length > 0 && (
+                <Card
+                  key={section}
+                  title={toTitle(section)}
+                  style={{
+                    border: "solid 2px #1890ff",
+                  }}
+                >
+                  <Row gutter={[10, 10]}>
+                    {data[section]?.items?.map((item: any, index: number) => (
+                      <Col key={index} span={6}>
+                        <NavLink to={toSlug(item.label)}>
+                          <Button key={index} className="w-full">
+                            {item.label}
+                          </Button>
+                        </NavLink>
+                      </Col>
+                    ))}
+                  </Row>
+                </Card>
+              )
+          )}
+        </Space>
       )}
-    </Space>
+    </div>
   );
 };
 
