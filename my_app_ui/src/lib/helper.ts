@@ -80,7 +80,7 @@ export const groupSidebarItems = (
       .map((child) => ({
         key: child.name,
         label: child.label,
-        onClick: () => navigate(toSlug(parent.label + "/" + child.label)),
+        onClick: () => navigate(toSlug(child.label)),
       }));
 
     groupedItems.push({

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toTitle, toSlug } from "../lib/helper";
 import { Button, Card, Col, Row, Space, Spin } from "antd";
 
-const DynamicPage = () => {
+const DesktopPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const lastSegment = location.pathname.split("/").pop();
   const [data, setData] = useState<any>();
   const [loading, setLoading] = useState<boolean>(true);
@@ -22,9 +23,7 @@ const DynamicPage = () => {
             "/api/method/frappe.desk.desktop.get_desktop_page",
           {
             method: "POST",
-            headers: {
-              "X-Frappe-CSRF-Token": import.meta.env.VITE_CSRF_TOKEN,
-            },
+            headers: { "X-Frappe-CSRF-Token": import.meta.env.VITE_CSRF_TOKEN },
             body: formData,
           }
         );
@@ -48,6 +47,11 @@ const DynamicPage = () => {
     }
   }, [lastSegment]);
 
+  // Handle link click with replace path
+  const handleLinkClick = (slug: string) => {
+    navigate(`/${slug}`, { replace: true });
+  };
+
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
       {loading ? (
@@ -69,18 +73,20 @@ const DynamicPage = () => {
                 <Card
                   key={section}
                   title={toTitle(section)}
-                  style={{
-                    border: "solid 2px #1890ff",
-                  }}
+                  style={{ border: "solid 2px #1890ff" }}
                 >
                   <Row gutter={[10, 10]}>
                     {data[section]?.items?.map((item: any, index: number) => (
                       <Col key={index} span={6}>
-                        <NavLink to={toSlug(item.label)}>
-                          <Button key={index} className="w-full">
-                            {item.label}
-                          </Button>
-                        </NavLink>
+                        <Button
+                          key={index}
+                          className="w-full"
+                          onClick={() =>
+                            handleLinkClick(`${toSlug(item.label)}/list`)
+                          }
+                        >
+                          {item.label}
+                        </Button>
                       </Col>
                     ))}
                   </Row>
@@ -93,4 +99,4 @@ const DynamicPage = () => {
   );
 };
 
-export default DynamicPage;
+export default DesktopPage;

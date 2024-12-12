@@ -12,8 +12,9 @@ import Login from "./pages/auth/Login";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
-import DynamicPage from "./pages/DynamicPage";
+import DesktopPage from "./pages/DesktopPage";
 import { FrappeProvider } from "frappe-react-sdk";
+import ListViewPage from "./pages/ListViewPage";
 
 // Get Site Name
 const getSiteName = () => {
@@ -25,7 +26,6 @@ const getSiteName = () => {
     : import.meta.env.VITE_SITE_NAME;
 };
 
-// Router Configuration
 const router = createBrowserRouter([
   {
     path: "/",
@@ -40,8 +40,12 @@ const router = createBrowserRouter([
         element: <Profile />,
       },
       {
-        path: ":dynamicPage",
-        element: <DynamicPage />,
+        path: ":page",
+        element: <DesktopPage />,
+      },
+      {
+        path: ":page/list",
+        element: <ListViewPage />,
       },
     ],
   },
