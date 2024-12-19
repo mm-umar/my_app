@@ -60,10 +60,9 @@ const DesktopPage = () => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            height: "100vh",
           }}
         >
-          <Spin tip="Loading..." size="large" style={{ marginTop: "20px" }} />
+          <Spin size="large" style={{ marginTop: "20px" }} />
         </div>
       ) : (
         <Space direction="vertical" style={{ width: "100%" }}>

@@ -1,20 +1,13 @@
+import { Table } from "antd";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { toTitle } from "../lib/helper";
-import { Table, Typography, message } from "antd";
-
-const { Title } = Typography;
-
-interface Data {
-  keys: string[];
-  values: any[][];
-}
 
 const ListViewPage = () => {
   const location = useLocation();
   const segments = location.pathname.split("/").filter(Boolean);
   const secondLastSegment = segments[segments.length - 2];
-  const [data, setData] = useState<Data | null>(null);
+  const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -43,14 +36,16 @@ const ListViewPage = () => {
         const result = await response.json();
 
         if (result?.message) {
-          setData(result.message);
+          const messageData = result.message;
+          setData({
+            keys: Array.isArray(messageData.keys) ? messageData.keys : [],
+            values: Array.isArray(messageData.values) ? messageData.values : [],
+          });
         } else {
           setData({ keys: [], values: [] });
-          message.warning("No data found!");
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-        message.error("Failed to fetch data. Please try again later.");
         setData({ keys: [], values: [] });
       } finally {
         setLoading(false);
@@ -61,8 +56,9 @@ const ListViewPage = () => {
   }, [secondLastSegment]);
 
   const columns =
-    data?.keys?.map((key) => ({
-      title: toTitle(key), // Capitalize column titles
+    Array.isArray(data?.keys) &&
+    data?.keys?.map((key: string | undefined) => ({
+      title: toTitle(key),
       dataIndex: key,
       key,
       render:
@@ -71,26 +67,26 @@ const ListViewPage = () => {
               <img src={text} alt={key} style={{ width: 50, height: 50 }} />
             )
           : undefined,
-    })) || [];
+    }));
 
   const dataSource =
-    data?.values?.map((valueArray, index) => {
+    Array.isArray(data?.values) &&
+    data?.values.map((valueArray: { [x: string]: any }, index: any) => {
       const record: Record<string, any> = { key: index };
-      data?.keys.forEach((key, i) => {
+      data?.keys?.forEach((key: string | number, i: string | number) => {
         record[key] = valueArray[i];
       });
       return record;
-    }) || [];
+    });
 
   return (
     <Table
-      title={() => <Title level={4}>{toTitle(secondLastSegment)} List</Title>}
-      columns={columns}
-      dataSource={dataSource}
+      columns={columns || []}
+      dataSource={dataSource || []}
       loading={loading}
-      bordered
       pagination={{ pageSize: 5 }}
       scroll={{ x: "max-content" }}
+      bordered
     />
   );
 };
